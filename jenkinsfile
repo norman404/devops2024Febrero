@@ -15,4 +15,10 @@ node {
             sh 'npm test'
         }
     }
+    stage('Docker Build & Push') {
+        docker.withRegistry('https://registry.hub.docker.com', 'docker-hub') {
+            def nuestraapp = docker.build('norman404/eneroappnodes:${gitcommit}', '.')
+            nuestraapp.push()
+        }
+    }
 }
