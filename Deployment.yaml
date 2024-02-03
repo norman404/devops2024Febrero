@@ -39,9 +39,9 @@ metadata:
 spec:
   ingressClassName: nginx
   tls:
-  - host: 
-    - app.knodeapp.molcajete.dev
-    secretName: letsencrypt-nginx
+    - host: 
+      - app.knodeapp.molcajete.dev
+      secretName: letsencrypt-nginx
   rules:
   - host: app.knodeapp.molcajete.dev
     http:
