@@ -1,54 +1,28 @@
-pipeline {
-    agent any // Asegúrate de tener un agente donde se pueda ejecutar Docker y kubectl
+node {
+    def gitcommit
+    def contenedortest = docker.image('node')
 
-    environment {
-        DOCKER_CREDENTIALS_ID = 'docker-hub' // ID de las credenciales en Jenkins
-        REGISTRY_URL = 'https://registry.hub.docker.com'
+    stage('Verificación SCM') {
+        checkout scm
+        sh "git rev-parse --short HEAD > .git/commit-id"                        
+        gitcommit = readFile('.git/commit-id').trim()
     }
 
-    stages {
-        stage('Checkout SCM') {
-            steps {
-                checkout scm
-            }
+    stage('Test Node.js') {
+        contenedortest.pull()
+        contenedortest.inside {
+            sh 'npm install --only=dev'
+            sh 'npm test'
         }
-
-        stage('Obtener Git Commit ID') {
-            steps {
-                script {
-                    gitcommit = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                }
-            }
+    }
+    stage('Docker Build & Push') {
+        docker.withRegistry('https://registry.hub.docker.com', 'docker-hub') {
+            def nuestraapp = docker.build("norman404/eneroappnodes:${gitcommit}", ".")
+            nuestraapp.push()
         }
-
-        stage('Test Node.js') {
-            steps {
-                docker.image('node').inside {
-                    sh '''
-                        npm install --only=dev
-                        npm test
-                    '''
-                }
-            }
-        }
-
-        stage('Docker Build & Push') {
-            steps {
-                script {
-                    docker.withRegistry(REGISTRY_URL, DOCKER_CREDENTIALS_ID) {
-                        def nuestraapp = docker.build("norman404/eneroappnodes:${gitcommit}", ".")
-                        nuestraapp.push()
-                    }
-                }
-            }
-        }
-        stage('Update & Deploy') {
-            steps {
-                sh """
-                    sed -i 's/<IMAGE_TAG>/${gitcommit}/g' Deployment.yaml
-                    kubectl apply -f Deployment.yaml
-                """
-            }
-        }
+    }
+    stage('Update & Deploy') {
+        sh "sed -i 's/<IMAGE_TAG>/${gitcommit}/g' Deployment.yaml"
+        sh "kubectl apply -f Deployment.yaml"
     }
 }
