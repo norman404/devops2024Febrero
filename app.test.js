@@ -10,6 +10,6 @@ describe('GET /', () => {
     
     // Espera que el status sea 200 y el texto sea 'Hello World2'
     expect(res.statusCode).toEqual(200);
-    expect(res.text).toEqual('Hello World 4');
+    expect(res.text).toEqual('Hello World 5');
   });
 });
