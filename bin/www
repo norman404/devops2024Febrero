@@ -3,10 +3,13 @@
 const app = require('../index')
 const http = require('http')
 
+
+const PORT = process.env.PORT || 3000
+
 /**
  * Get port from environment and store in Express.
  */
-const port = normalizePort(3000)
+const port = normalizePort(PORT)
 app.set('port', port)
 /**
  * Create HTTP server.
